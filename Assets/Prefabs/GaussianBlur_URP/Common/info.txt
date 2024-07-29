@@ -1,0 +1,1 @@
+this folder contains assets used by 2 or more of the demos

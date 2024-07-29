@@ -1,0 +1,90 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fab54ab55a69f2347bdfcc42ef5034dc, type: 3}
+  m_Name: GliaSettings
+  m_EditorClassIdentifier: 
+  LicenseType: 4
+  ClientIDBytes: b3df7aac9fc5fe7ee260cabd03e4992793c1d495e47b080bad63680fe96555dbbf467da36658687c2ae1307b45e99ba7
+  AccessKeyBytes: ac5c8c73a4770d8f2993185816a95c89da8632824a9fc8f97539e594009edd0375cf295f11470d5deedf9e497823e0dbf01d033ac1994fd207d494ea71783b267a213d867d8dc0305dd3df4507b6ef67
+  UnitySubscriptions:
+  - m_label: Cognitive Load
+    m_enabled: 1
+    m_messageType: 21
+    m_sender: 
+    m_id: 
+    m_subid: 
+    m_location: 
+    m_versionSemantic: 
+  - m_label: Heart Rate
+    m_enabled: 1
+    m_messageType: 3
+    m_sender: 
+    m_id: 
+    m_subid: 
+    m_location: 
+    m_versionSemantic: 
+  - m_label: Heart Rate Variability
+    m_enabled: 1
+    m_messageType: 36
+    m_sender: 
+    m_id: 
+    m_subid: 
+    m_location: 
+    m_versionSemantic: 
+  - m_label: Eye Tracking
+    m_enabled: 1
+    m_messageType: 9
+    m_sender: 
+    m_id: 
+    m_subid: 
+    m_location: 
+    m_versionSemantic: 
+  - m_label: Camera Image
+    m_enabled: 1
+    m_messageType: 37
+    m_sender: 
+    m_id: 
+    m_subid: 
+    m_location: 
+    m_versionSemantic: 
+  - m_label: IMU
+    m_enabled: 1
+    m_messageType: 39
+    m_sender: 
+    m_id: 
+    m_subid: 
+    m_location: 
+    m_versionSemantic: 
+  - m_label: PPG
+    m_enabled: 1
+    m_messageType: 18
+    m_sender: 
+    m_id: 
+    m_subid: 
+    m_location: 
+    m_versionSemantic: 
+  - m_label: VSync
+    m_enabled: 1
+    m_messageType: 28
+    m_sender: 
+    m_id: 
+    m_subid: 
+    m_location: 
+    m_versionSemantic: 
+  - m_label: Subscription Result List
+    m_enabled: 1
+    m_messageType: 42
+    m_sender: 
+    m_id: 
+    m_subid: 
+    m_location: 
+    m_versionSemantic: 
