@@ -64,5 +64,5 @@ Data collected during the experiment will be stored locally in the same folder a
 
 ## Support
 
-For support or to report issues, please email rose_rouhani@sfu.ca or jannik.brockerhoff@h-brs.de
-see http://ispace.iat.sfu.ca/project/vr-sickness-benchmark/ for more details and videos of differnt stimuli
+For support or to report issues, please email ber1@sfu.ca, rose_rouhani@sfu.ca, or jannik.brockerhoff@h-brs.de
+see http://ispace.iat.sfu.ca/project/vr-sickness-benchmark/ for more details and videos of different stimuli
