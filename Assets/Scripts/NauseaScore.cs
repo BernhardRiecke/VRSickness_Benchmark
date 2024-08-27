@@ -8,27 +8,27 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.UI;
 using Valve.VR;
+using HP.Omnicept.Unity;
 
 
 //Script for Logging Data und Triggering various Events
 public class NauseaScore : MonoBehaviour
 {
-
     //using glia behaviour to access heart rate data
-    //private GliaBehaviour _gliaBehaviour = null;
-    //private GliaBehaviour gliaBehaviour
-    //{
-    //    get
-    //    {
-    //        if (_gliaBehaviour == null)
-    //        {
-    //            _gliaBehaviour = FindObjectOfType<GliaBehaviour>();
-    //        }
-    //        return _gliaBehaviour;
-    //    }
-    //}
+    private GliaBehaviour _gliaBehaviour = null;
+    private GliaBehaviour gliaBehaviour
+    {
+        get
+        {
+            if (_gliaBehaviour == null)
+            {
+                _gliaBehaviour = FindObjectOfType<GliaBehaviour>();
+            }
+            return _gliaBehaviour;
+        }
+    }
 
-    public enum ControlMode
+public enum ControlMode
     {
         passive,
         virtual_active,
@@ -124,6 +124,12 @@ public class NauseaScore : MonoBehaviour
     int count = 0;
     private string MScheck;
     float scale_factor;
+    public enum HMDEnum { 
+    Oculus,
+    HP_Omnicept
+    }
+
+    public HMDEnum hmdSelect = HMDEnum.Oculus;
 
     float FOVFactor;
     public Volume PPV;
@@ -506,22 +512,45 @@ public class NauseaScore : MonoBehaviour
         {
 
             var sr = File.CreateText(root);
-            string dataCSV = "Date and Time," + "Unix Timestamp," + "Participant ID," +
+            string dataCSV = "";
+
+            if (hmdSelect == HMDEnum.Oculus)
+            {
+                dataCSV = "Date and Time," + "Unix Timestamp," + "Participant ID," +
               "Trial," + "Eviroment Size," + "Body Sway Condition," +
               "Nausea Score," +
               "Locomotion Interface," + "Translation Mode," + "Rotation Mode," +
               "Visualization Hardware" + "," + "Motionsickness Reduction Method," + "CS Abortion Value," +
               "Time (Beginning)," + "Distance/Meters Travelled," + "Seconds Travelled," + "Vignette," +
-           //   "Heart Rate," 
+             //   "Heart Rate," 
 
-           // + "left Eye Gaze X," + "left Eye Gaze Y," + "left Eye Gaze Z," + "left Eye Gaze Confidence," + "left Eye Pupil Position X," + "left Eye Pupil Position Y," + "left Eye Pupil Position Confidence," + "left Eye Openness," + "left Eye Openness Confidence," + "left Eye Pupil Dilation," + "left Eye Pupil Dilation Confidence,"
-           // + "right Eye Gaze X," + "right Eye Gaze Y," + "right Eye Gaze Z," + "right Eye Gaze Confidence," + "right Eye Pupil Position X," + "right Eye Pupil Position Y," + "right Eye Pupil Position Confidence," + "right Eye Openness," + "right Eye Openness Confidence," + "right Eye Pupil Dilation," + "right Eye Pupil Dilation Confidence,"
+             // + "left Eye Gaze X," + "left Eye Gaze Y," + "left Eye Gaze Z," + "left Eye Gaze Confidence," + "left Eye Pupil Position X," + "left Eye Pupil Position Y," + "left Eye Pupil Position Confidence," + "left Eye Openness," + "left Eye Openness Confidence," + "left Eye Pupil Dilation," + "left Eye Pupil Dilation Confidence,"
+             // + "right Eye Gaze X," + "right Eye Gaze Y," + "right Eye Gaze Z," + "right Eye Gaze Confidence," + "right Eye Pupil Position X," + "right Eye Pupil Position Y," + "right Eye Pupil Position Confidence," + "right Eye Openness," + "right Eye Openness Confidence," + "right Eye Pupil Dilation," + "right Eye Pupil Dilation Confidence,"
 
-             "X," + "Z," + "Y," + "Yaw," + "Velocity (m/s)," + "Acceleration," + "Yaw Angle," + "Yaw Velocity (°/s)," + "Yaw Acceleration," 
-           // "Cognitive Load Value," + "Cognitive Load Standard Deviation," + "Cognitive Load Data State," + 
-           // "Accelerometer X," + "Accelerometer Y," + "Accelerometer Z," + "Gyroscope X," + "Gyroscope Y," + "Gyroscope Z,"
+             "X," + "Z," + "Y," + "Yaw," + "Velocity (m/s)," + "Acceleration," + "Yaw Angle," + "Yaw Velocity (°/s)," + "Yaw Acceleration,"
+            // "Cognitive Load Value," + "Cognitive Load Standard Deviation," + "Cognitive Load Data State," + 
+            // "Accelerometer X," + "Accelerometer Y," + "Accelerometer Z," + "Gyroscope X," + "Gyroscope Y," + "Gyroscope Z,"
             ;
+            }
 
+            else if (hmdSelect != HMDEnum.HP_Omnicept)
+            {
+                dataCSV = "Date and Time," + "Unix Timestamp," + "Participant ID," +
+                 "Trial," + "Eviroment Size," + "Body Sway Condition," +
+                 "Nausea Score," +
+                 "Locomotion Interface," + "Translation Mode," + "Rotation Mode," +
+                 "Visualization Hardware" + "," + "Motionsickness Reduction Method," + "CS Abortion Value," +
+                 "Time (Beginning)," + "Distance/Meters Travelled," + "Seconds Travelled," + "Vignette," +
+                   "Heart Rate," 
+
+                 + "left Eye Gaze X," + "left Eye Gaze Y," + "left Eye Gaze Z," + "left Eye Gaze Confidence," + "left Eye Pupil Position X," + "left Eye Pupil Position Y," + "left Eye Pupil Position Confidence," + "left Eye Openness," + "left Eye Openness Confidence," + "left Eye Pupil Dilation," + "left Eye Pupil Dilation Confidence,"
+                 + "right Eye Gaze X," + "right Eye Gaze Y," + "right Eye Gaze Z," + "right Eye Gaze Confidence," + "right Eye Pupil Position X," + "right Eye Pupil Position Y," + "right Eye Pupil Position Confidence," + "right Eye Openness," + "right Eye Openness Confidence," + "right Eye Pupil Dilation," + "right Eye Pupil Dilation Confidence,"
+
+                + "X," + "Z," + "Y," + "Yaw," + "Velocity (m/s)," + "Acceleration," + "Yaw Angle," + "Yaw Velocity (°/s)," + "Yaw Acceleration," +
+                "Cognitive Load Value," + "Cognitive Load Standard Deviation," + "Cognitive Load Data State," + 
+                "Accelerometer X," + "Accelerometer Y," + "Accelerometer Z," + "Gyroscope X," + "Gyroscope Y," + "Gyroscope Z,"
+               ;
+            }
 
 
             if (!usFormat)
@@ -564,140 +593,12 @@ public class NauseaScore : MonoBehaviour
             float rotationVel = rotation - rotationOld;
             float rotationAcc = rotationVel - rotationVelOld;
 
-            //Biometric data
-
-            //Heart Rate
-            //string heartRate = gliaBehaviour.GetLastHeartRate() + "";
-            //Debug.Log("Heart rate" + gliaBehaviour.GetLastHeartRate());
-
-            //System.Text.RegularExpressions.Match regex;
-            //regex = System.Text.RegularExpressions.Regex.Match(heartRate, @"[+-]?([0-9]*[.])?[0-9]+");
-
-            //if (regex.Success)
-            //    heartRateNum = System.Text.RegularExpressions.Regex.Match(heartRate, @"[+-]?([0-9]*[.])?[0-9]+").Value;
-         
-            //Eye tracking
-
-            //string eyeTracking = gliaBehaviour.GetLastEyeTracking() + "";
-            //string[] eyeTrackingSplit = eyeTracking.Split('=');
-            //string eyeTrackingTest = eyeTracking;
-
-            //List<string> listStrLineElements = new List<string>();
-
-            //regex = System.Text.RegularExpressions.Regex.Match(eyeTrackingTest, @"[+-]?([0-9]*[.])?[0-9]+");
-
-            // while (regex.NextMatch().Success)
-            // {
-            //    eyeTrackingTest = eyeTrackingTest.Substring(regex.Index + regex.Value.Length);
-            //    listStrLineElements.Add(regex.Value);
-            //    regex = System.Text.RegularExpressions.Regex.Match(eyeTrackingTest, @"[+-]?([0-9]*[.])?[0-9]+");
-            //}
-
-            //if(listStrLineElements.Count == 0)
-            //{
-            //    for (int i = 0; i < 22; i++)
-            //    {
-            //        listStrLineElements.Add("0");
-
-            //    }
-            //}
-            
-            //Left eye 
-            ///*string leftEyeGazeX = listStrLineElements[0];
-            //string leftEyeGazeY = listStrLineElements[1];
-            //string leftEyeGazeZ = listStrLineElements[2];
-            //string leftEyeGazeConfidence = listStrLineElements[3];
-
-            //string leftEyePupilPositionX = listStrLineElements[4];
-            //string leftEyePupilPositionY = listStrLineElements[5];
-            //string leftEyePupilPositionConfidence = listStrLineElements[6];
-
-            //string leftEyeOpennessOpenness = listStrLineElements[7];
-            //string leftEyeOpennessConfidence = listStrLineElements[8];
-
-            //string leftEyePupilDilationPupilDilation = listStrLineElements[9];
-            //string leftEyePupilDilationConfidence = listStrLineElements[10];
-
-            ////Right eye 
-            //string rightEyeGazeX = listStrLineElements[11];
-            //string rightEyeGazeY = listStrLineElements[12];
-            //string rightEyeGazeZ = listStrLineElements[13];
-            //string rightEyeGazeConfidence = listStrLineElements[14];
-
-            //string rightEyePupilPositionX = listStrLineElements[15];
-            //string rightEyePupilPositionY = listStrLineElements[16];
-            //string rightEyePupilPositionConfidence = listStrLineElements[17];
-
-            //string rightEyeOpennessOpenness = listStrLineElements[18];
-            //string rightEyeOpennessConfidence = listStrLineElements[19];
-
-            //string rightEyePupilDilationPupilDilation = listStrLineElements[20];
-            //string rightEyePupilDilationConfidence = listStrLineElements[21];*/
 
             System.DateTime epochStart = new System.DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
             long cur_time = (long)(System.DateTime.UtcNow - epochStart).TotalMilliseconds;
+            string dataCSV = "";
 
-            //cognitive load
-            //string cognitiveLoad = gliaBehaviour.GetLastCognitiveLoad() + "";
-            //regex = System.Text.RegularExpressions.Regex.Match(cognitiveLoad, @"[+-]?([0-9]*[.])?[0-9]+");
-            //string cognitiveLoadValue, cognitiveLoadStandardDeviation, cognitiveLoadDataState;
-            //if (regex.Success)
-            //{
-            //    cognitiveLoadValue = regex.Value;
-            //    cognitiveLoad = cognitiveLoad.Substring(regex.Index + regex.Value.Length);
-            //    regex = System.Text.RegularExpressions.Regex.Match(cognitiveLoad, @"[+-]?([0-9]*[.])?[0-9]+");
-            //    cognitiveLoadStandardDeviation = regex.Value;
-            //    cognitiveLoad = cognitiveLoad.Substring(regex.Index + regex.Value.Length);
-            //    regex = System.Text.RegularExpressions.Regex.Match(cognitiveLoad, @"[+-]?([0-9]*[.])?[0-9]+");
-            //    cognitiveLoadDataState = regex.Value;
-            //}
-            //else
-            //{
-            //    cognitiveLoadValue = "0.0";
-            //    cognitiveLoadStandardDeviation = "0.0";
-            //    cognitiveLoadDataState = "0.0";
-            //}
-
-            //IMU data
-            //string IMUFrame = gliaBehaviour.GetLastIMUFrame() + "";
-            //List<string> IMU3AxisValues = new List<string>();
-            //for (int i = 0; i < 6; i++)
-            //{
-            //    regex = System.Text.RegularExpressions.Regex.Match(IMUFrame, @"[+-]?([0-9]*[.])?[0-9]+");
-            //    IMUFrame = IMUFrame.Substring(regex.Index + regex.Value.Length);
-            //    IMU3AxisValues.Add(regex.Value);
-            //}
-            //string accX = IMU3AxisValues[0];
-            //string accY = IMU3AxisValues[1];
-            //string accZ = IMU3AxisValues[2];
-            //string gyroX = IMU3AxisValues[3];
-            //string gyroY = IMU3AxisValues[4];
-            //string gyroZ = IMU3AxisValues[5];
-
-            //mapped vignette to percentage scale
-            // VignetteMapped = MapRange(Vignette, 10, 70, 10, 100);
-
-            //if (IMU3AxisValues.Count == 0)
-            //{
-            //    for (int i = 0; i < 6; i++)
-            //    {
-            //        IMU3AxisValues.Add("0");
-            //    }
-            //}
-
-
-            if (linearEquation.isBinned)
-            {
-                MScheck = (Mathf.Floor(MS)).ToString("0.0000");
-            }
-            else
-            {
-                MScheck = MS.ToString("0.0000");
-            }
-
-            //long cur_time = (long) DateTimeOffset.Now.ToUnixTimeMilliseconds();
-            string dataCSV =
-                System.DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss") + " ;" +
+            dataCSV = System.DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss") + " ;" +
                 cur_time + ";" +
                 DataName + " ;" +
                 trial + " ;" +
@@ -745,7 +646,7 @@ public class NauseaScore : MonoBehaviour
                 (oldMS - MS).ToString("0.0000") + ";" +
                 RotationPlayer().ToString("0.00") + ";" +
                 (rotationVel * 10).ToString("0.00") + ";" +
-                (rotationAcc * 10).ToString("0.00") + ";" 
+                (rotationAcc * 10).ToString("0.00") + ";"
                 //cognitiveLoadValue + ";" +
                 //cognitiveLoadStandardDeviation + ";" +
                 //cognitiveLoadDataState + ";" +
@@ -758,6 +659,198 @@ public class NauseaScore : MonoBehaviour
                 ;
             ;
 
+            if (hmdSelect == HMDEnum.HP_Omnicept)
+            {
+                //Biometric data
+
+                //Heart Rate
+                string heartRate = gliaBehaviour.GetLastHeartRate() + "";
+                Debug.Log("Heart rate" + gliaBehaviour.GetLastHeartRate());
+
+                System.Text.RegularExpressions.Match regex;
+                regex = System.Text.RegularExpressions.Regex.Match(heartRate, @"[+-]?([0-9]*[.])?[0-9]+");
+
+                if (regex.Success)
+                    heartRateNum = System.Text.RegularExpressions.Regex.Match(heartRate, @"[+-]?([0-9]*[.])?[0-9]+").Value;
+
+                //Eye tracking
+
+                string eyeTracking = gliaBehaviour.GetLastEyeTracking() + "";
+                string[] eyeTrackingSplit = eyeTracking.Split('=');
+                string eyeTrackingTest = eyeTracking;
+
+                List<string> listStrLineElements = new List<string>();
+
+                regex = System.Text.RegularExpressions.Regex.Match(eyeTrackingTest, @"[+-]?([0-9]*[.])?[0-9]+");
+
+                while (regex.NextMatch().Success)
+                {
+                    eyeTrackingTest = eyeTrackingTest.Substring(regex.Index + regex.Value.Length);
+                    listStrLineElements.Add(regex.Value);
+                    regex = System.Text.RegularExpressions.Regex.Match(eyeTrackingTest, @"[+-]?([0-9]*[.])?[0-9]+");
+                }
+
+                if (listStrLineElements.Count == 0)
+                {
+                    for (int i = 0; i < 22; i++)
+                    {
+                        listStrLineElements.Add("0");
+
+                    }
+                }
+
+                //Left eye
+                string leftEyeGazeX = listStrLineElements[0];
+                string leftEyeGazeY = listStrLineElements[1];
+                string leftEyeGazeZ = listStrLineElements[2];
+                string leftEyeGazeConfidence = listStrLineElements[3];
+
+                string leftEyePupilPositionX = listStrLineElements[4];
+                string leftEyePupilPositionY = listStrLineElements[5];
+                string leftEyePupilPositionConfidence = listStrLineElements[6];
+
+                string leftEyeOpennessOpenness = listStrLineElements[7];
+                string leftEyeOpennessConfidence = listStrLineElements[8];
+
+                string leftEyePupilDilationPupilDilation = listStrLineElements[9];
+                string leftEyePupilDilationConfidence = listStrLineElements[10];
+
+                //Right eye 
+                string rightEyeGazeX = listStrLineElements[11];
+                string rightEyeGazeY = listStrLineElements[12];
+                string rightEyeGazeZ = listStrLineElements[13];
+                string rightEyeGazeConfidence = listStrLineElements[14];
+
+                string rightEyePupilPositionX = listStrLineElements[15];
+                string rightEyePupilPositionY = listStrLineElements[16];
+                string rightEyePupilPositionConfidence = listStrLineElements[17];
+
+                string rightEyeOpennessOpenness = listStrLineElements[18];
+                string rightEyeOpennessConfidence = listStrLineElements[19];
+
+                string rightEyePupilDilationPupilDilation = listStrLineElements[20];
+                string rightEyePupilDilationConfidence = listStrLineElements[21];
+
+                //cognitive load
+                string cognitiveLoad = gliaBehaviour.GetLastCognitiveLoad() + "";
+                regex = System.Text.RegularExpressions.Regex.Match(cognitiveLoad, @"[+-]?([0-9]*[.])?[0-9]+");
+                string cognitiveLoadValue, cognitiveLoadStandardDeviation, cognitiveLoadDataState;
+                if (regex.Success)
+                {
+                    cognitiveLoadValue = regex.Value;
+                    cognitiveLoad = cognitiveLoad.Substring(regex.Index + regex.Value.Length);
+                    regex = System.Text.RegularExpressions.Regex.Match(cognitiveLoad, @"[+-]?([0-9]*[.])?[0-9]+");
+                    cognitiveLoadStandardDeviation = regex.Value;
+                    cognitiveLoad = cognitiveLoad.Substring(regex.Index + regex.Value.Length);
+                    regex = System.Text.RegularExpressions.Regex.Match(cognitiveLoad, @"[+-]?([0-9]*[.])?[0-9]+");
+                    cognitiveLoadDataState = regex.Value;
+                }
+                else
+                {
+                    cognitiveLoadValue = "0.0";
+                    cognitiveLoadStandardDeviation = "0.0";
+                    cognitiveLoadDataState = "0.0";
+                }
+
+                //IMU data
+                string IMUFrame = gliaBehaviour.GetLastIMUFrame() + "";
+                List<string> IMU3AxisValues = new List<string>();
+                for (int i = 0; i < 6; i++)
+                {
+                    regex = System.Text.RegularExpressions.Regex.Match(IMUFrame, @"[+-]?([0-9]*[.])?[0-9]+");
+                    IMUFrame = IMUFrame.Substring(regex.Index + regex.Value.Length);
+                    IMU3AxisValues.Add(regex.Value);
+                }
+                string accX = IMU3AxisValues[0];
+                string accY = IMU3AxisValues[1];
+                string accZ = IMU3AxisValues[2];
+                string gyroX = IMU3AxisValues[3];
+                string gyroY = IMU3AxisValues[4];
+                string gyroZ = IMU3AxisValues[5];
+
+                //mapped vignette to percentage scale
+                 //VignetteMapped = MapRange(Vignette, 10, 70, 10, 100);
+
+                if (IMU3AxisValues.Count == 0)
+                {
+                    for (int i = 0; i < 6; i++)
+                    {
+                        IMU3AxisValues.Add("0");
+                    }
+                }
+
+                dataCSV = System.DateTime.Now.ToString("MM/dd/yyyy HH:mm:ss") + " ;" +
+               cur_time + ";" +
+               DataName + " ;" +
+               trial + " ;" +
+               Data.envSize + " ;" + //only one size at the moment
+               bodySwayCondition + ";" +
+               currentNauseaScore + ";" +
+               Data.locoMoInterface + " ;" + // only one interface at the moment
+               Data.translationMode + ";" +
+               Data.rotationMode + ";" +
+               HeadsetName + ";" +
+               Data.MSreductionMethod + ";" +
+               CSAbortValue + ";" +
+               timeElapsed.ToString("0.0000") + ";" +
+               playerLine.metersTravelled + ";" +
+               playerLine.secondsTravelled + ";" +
+               MaxFOV + ";" +
+               heartRateNum + ";" +
+               leftEyeGazeX + ";" +
+               leftEyeGazeY + ";" +
+               leftEyeGazeZ + ";" +
+               leftEyeGazeConfidence + ";" +
+               leftEyePupilPositionX + ";" +
+               leftEyePupilPositionY + ";" +
+               leftEyePupilPositionConfidence + ";" +
+               leftEyeOpennessOpenness + ";" +
+               leftEyeOpennessConfidence + ";" +
+               leftEyePupilDilationPupilDilation + ";" +
+               leftEyePupilDilationConfidence + ";" +
+               rightEyeGazeX + ";" +
+               rightEyeGazeY + ";" +
+               rightEyeGazeZ + ";" +
+               rightEyeGazeConfidence + ";" +
+               rightEyePupilPositionX + ";" +
+               rightEyePupilPositionY + ";" +
+               rightEyePupilPositionConfidence + ";" +
+               rightEyeOpennessOpenness + ";" +
+               rightEyeOpennessConfidence + ";" +
+               rightEyePupilDilationPupilDilation + ";" +
+               rightEyePupilDilationConfidence + ";" +
+               player.transform.position.x.ToString("0.000") + ";" +
+               player.transform.position.z.ToString("0.000") + ";" +
+               player.transform.position.y.ToString("0.000") + ";" +
+               player.transform.rotation.eulerAngles.y.ToString("0.000") + ";" +
+               MScheck + ";" +
+               (oldMS - MS).ToString("0.0000") + ";" +
+               RotationPlayer().ToString("0.00") + ";" +
+               (rotationVel * 10).ToString("0.00") + ";" +
+               (rotationAcc * 10).ToString("0.00") + ";" +
+               cognitiveLoadValue + ";" +
+               cognitiveLoadStandardDeviation + ";" +
+               cognitiveLoadDataState + ";" +
+               accX + ";" +
+               accY + ";" +
+               accZ + ";" +
+               gyroX + ";" +
+               gyroY + ";" +
+               gyroZ + ";"
+               ;
+                ;
+            }
+
+            if (linearEquation.isBinned)
+            {
+                MScheck = (Mathf.Floor(MS)).ToString("0.0000");
+            }
+            else
+            {
+                MScheck = MS.ToString("0.0000");
+            }
+
+            //long cur_time = (long) DateTimeOffset.Now.ToUnixTimeMilliseconds();
 
             oldMS = MS;
             rotationOld = rotation;
@@ -819,8 +912,6 @@ public class NauseaScore : MonoBehaviour
         }
       
     }
-
-
     
 
     //Pause Study
