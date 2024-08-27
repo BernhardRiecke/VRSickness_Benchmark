@@ -3,20 +3,27 @@ using System.Collections.Generic;
 using UnityEngine;
 using static UnityEngine.Mathf;
 using System.IO;
-using SimpleBlurURP;  
+using SimpleBlurURP;
+using Valve.VR;
 
 
 public class LinearEquation : MonoBehaviour
 {   [Tooltip("Toggle to disable autonomous movement")]
     public bool set_manually = false;
+    public bool active_locomotion = true;
+    public float activeSensitivity = 0.1f;
+
     [Range(0, 2 * PI)]
     public float currentTheta;
 
+    public float followMeTheta;
+    public GameObject followMeObject;
 
 
     public float minSpeed = 0.1f, maxSpeed = 2f;
     public readValues rv;
     public float speed = 1;
+    public float followMeSpeed = 1;
     public Vector3 lasttPosition;
     public Vector3 positionVector;
     public Vector3 velocityVector;
@@ -46,10 +53,12 @@ public class LinearEquation : MonoBehaviour
     bool slowDownOn;
     bool roundReset = false, trackLengthAdjusted = false;
     public static float transformHeight;
+    public static float followMeHeight;
     Vector3 lastPos;
     int startBorder, endBorder;
     private float curVel;
     public float cosIndexTime;
+    public float cosIndexTimeFollowMe;
     public float randomFactor = 1;
     public int swapSpeedzonesData = -1;
     private float initialHeight;
@@ -72,6 +81,7 @@ public class LinearEquation : MonoBehaviour
     private float trackLengthFactorSecondFreq;
     private float trackLengthFactorRange;
     public float cosX = 0f;
+    public float followMeCosX = 0f;
     private float timeRemaining = 0f;
     private bool experimentBegin = true;
 
@@ -89,6 +99,8 @@ public class LinearEquation : MonoBehaviour
     private void Awake()
     {
         transform.position = v2tov3(f_polar(currentTheta));
+        followMeObject.transform.position = v2tov3(f_polar(currentTheta));
+
         lastPos = v2tov3(f_polar(currentTheta - 0.01f));
         //transform.position = (f_polar3D(currentTheta, rollerCoasterHeight));
         //lastPos = (f_polar3D(currentTheta - 0.01f, rollerCoasterHeight));
@@ -103,6 +115,8 @@ public class LinearEquation : MonoBehaviour
 
         f_scaling = scale;
         transformHeight = transform.position.y;
+        followMeHeight = followMeObject.transform.position.y;
+
         filepath = Application.dataPath + filepath;
         if (createNewList)
         {       
@@ -158,7 +172,10 @@ public class LinearEquation : MonoBehaviour
         else
         {
             if (!constant_speed)
+            {
                 speedSinus();
+                speedSinusFollowMe();
+            }
         }
 
         if (set_manually)
@@ -167,14 +184,29 @@ public class LinearEquation : MonoBehaviour
         {
             if (controls.gameStarted == true)
             {
-                transform.position = v2tov3(getNextPosition(speed * Time.deltaTime));
+                if (!active_locomotion)
+                {
+                    transform.position = v2tov3(getNextPosition(speed * Time.deltaTime));
 
-                if (showDebugs)
-                 Debug.Log("Moved with error rate of " + Abs((transform.position - lastPos).magnitude - (speed * Time.deltaTime))*1000+"mm");
+                    if (showDebugs)
+                        Debug.Log("Moved with error rate of " + Abs((transform.position - lastPos).magnitude - (speed * Time.deltaTime)) * 1000 + "mm");
+                }
+               else
+               {
+                    currentTheta = calculateActiveTheta(SteamVR_Actions.default_Squeeze.GetAxis(SteamVR_Input_Sources.Any));
+                    transform.position = v2tov3(f_polar(currentTheta));
+               }
             }
         }
 
+        if (controls.gameStarted == true)
+        {
+            followMeObject.transform.position = v2tov3FollowMe(getNextPositionFollowMe(followMeSpeed * Time.deltaTime));
+        }
+
+        doRotationFollowMe();
         doRotation();
+
         GetComponent<readValues>().DoUpdate();
 
         //Set/adjust the tracklengthFactor after first round
@@ -193,6 +225,7 @@ public class LinearEquation : MonoBehaviour
                randomFactor = Random.Range(0.5f, 1.5f);
             }
         }
+
         if (roundReset == true && currentTheta < Mathf.PI)
         {
             roundReset = false;
@@ -205,6 +238,11 @@ public class LinearEquation : MonoBehaviour
     public static Vector3 v2tov3(Vector2 v)
     {
         return new Vector3(v.x, transformHeight, v.y);
+    }
+
+    public static Vector3 v2tov3FollowMe(Vector2 v)
+    {
+        return new Vector3(v.x, followMeHeight, v.y);
     }
 
     public static Vector2 v3tov2(Vector3 v)
@@ -310,8 +348,34 @@ public class LinearEquation : MonoBehaviour
         if (isStartForCosIndex)
         {
             cosIndexTime = 0;
+            cosIndexTimeFollowMe = 0;
         }
 
+    }
+
+    float calculateActiveTheta(float triggerAxis)
+    {
+        float k = 3.0f;
+        float L = 1.0f;
+        float x0 = 0.5f;
+        float deltaTheta = 0f;
+
+        if (triggerAxis != 0)
+        {
+            float logisticalInput = L / (1 + Mathf.Exp(-k * (triggerAxis - x0)));
+
+            deltaTheta = activeSensitivity * logisticalInput;
+
+        }
+
+        float newTheta = currentTheta + deltaTheta;
+
+        newTheta %= (2 * Mathf.PI);
+
+        if (newTheta < 0)
+            newTheta += (2 * Mathf.PI);
+
+        return newTheta;
     }
     void speedSinus()
     {
@@ -396,17 +460,15 @@ public class LinearEquation : MonoBehaviour
             }
 
             // delta distance by delta time
-            heightDer = Mathf.Abs((rollerCoasterHeight - ((maxHeight - minHeight) * (-Mathf.Cos(transform.position.z * Mathf.PI / max_y) + 1) / 2 + minHeight))) / Time.deltaTime;
- 
+            heightDer = Mathf.Abs((transformHeight - ((maxHeight - minHeight) * (-Mathf.Cos(transform.position.z * Mathf.PI / max_y) + 1) / 2 + minHeight))) / Time.deltaTime;
+
             // x as input for height
             // rollerCoasterHeight = (maxHeight - minHeight) * (-Mathf.Cos(transform.position.x * 2 * Mathf.PI / max_x) + 1) / 2 + minHeight;
 
             // z as input for height           
-            rollerCoasterHeight = (maxHeight - minHeight) * (-Mathf.Cos(transform.position.z * Mathf.PI / max_y) + 1) / 2 + minHeight;
+            transformHeight = (maxHeight - minHeight) * (-Mathf.Cos(transform.position.z * Mathf.PI / max_y) + 1) / 2 + minHeight;
 
             //rollerCoasterHeight = swapSpeedzonesData * ( - Mathf.Cos( ((8f * Mathf.PI * (maxSpeed + minSpeed)) / (trackLength * 2f)) * cosIndexTime ) + 1) * (maxHeight - minHeight) * (0.5f) + minHeight;
-
-            transformHeight = rollerCoasterHeight;   
 
             speed = Mathf.Sqrt(Mathf.Abs(speedXYZ * speedXYZ - heightDer * heightDer));
             //speed = swapSpeedzonesData * (maxSpeed - minSpeed) * (Mathf.Cos(transform.position.x * 2 * Mathf.PI / max_x) + 1) / 2 + minSpeed;
@@ -441,6 +503,132 @@ public class LinearEquation : MonoBehaviour
 
     }
 
+    void speedSinusFollowMe()
+    {
+        /*  pos	    theta	speed
+            -----------------
+            right 	0	    min
+            mid	    pi*1/4	max
+            left	pi*2/4	min
+            mid	    pi*3/4	max
+            right	pi	    min
+            mid	    pi*5/4	max
+            left	pi*6/4	min
+            mid	    pi*7/4	max
+            right 	2*pi	min
+        */
+
+        // speed = -Cos(currentTheta * 4);  //[-1|1]
+        // speed += 1; //[0|2]
+        // speed /= 2; //[0|1]
+        // speed = Pow(speed, sinusPower); //take to the power to make the slow parts shorter
+        // speed = speed * (maxSpeed - minSpeed) + minSpeed;   //[min|max]
+
+        if (controls.gameStarted)
+        {
+            cosIndexTimeFollowMe += Time.deltaTime;
+        }
+        else
+            return;
+
+
+        trackLengthFactorRange = trackLengthFactor / trackLengthFactorSecondFreq;
+
+        if (randomizeAcceleration)
+        {
+            if (timeRemaining <= 0)
+            {
+                cosIndexTimeFollowMe = 0;
+
+                randomAcc = Random.Range(1f, trackLengthFactorRange);
+                cosX = (doubleSpeedzones ? 2 : 1) * trackLengthFactorSecondFreq * randomFactor * randomAcc;
+                timeRemaining = (2 * Mathf.PI) / ((doubleSpeedzones ? 2 : 1) * trackLengthFactorSecondFreq * randomFactor * randomAcc);
+                followMeSpeed =  ((swapSpeedzonesData * Mathf.Cos(cosX * cosIndexTimeFollowMe) + 1) / 2) * (maxSpeed - minSpeed) + minSpeed;
+
+            }
+            else
+            {
+                followMeSpeed =  ((swapSpeedzonesData * Mathf.Cos(cosX * cosIndexTimeFollowMe) + 1) / 2) * (maxSpeed - minSpeed) + minSpeed;
+                timeRemaining -= Time.deltaTime;
+            }
+        }
+
+        else
+        {
+            followMeCosX = (doubleSpeedzones ? 2 : 1) * trackLengthFactor * randomFactor;
+            //speed = ((swapSpeedzonesData * Mathf.Cos(cosX * cosIndexTime) + 1) / 2) * (maxSpeed - minSpeed) + minSpeed;
+            //float speedXYZ = ((swapSpeedzonesData * (Mathf.Cos(cosX * cosIndexTime) + 1)) / 2) * (maxSpeed - minSpeed) + minSpeed; 
+
+            float speedXYZ = ((swapSpeedzonesData * (Mathf.Cos(followMeCosX * cosIndexTimeFollowMe) + 1)) / 2) * (maxSpeed - minSpeed) + minSpeed;
+
+            //float bSin = ((swapSpeedzonesData * cosX * Mathf.Sin(cosX * cosIndexTime) + 1) / 2) * (maxHeight - minHeight);
+            //float bSin = ((swapSpeedzonesData * (Mathf.Cos(cosX * cosIndexTime) + 1)) / 2) * (maxHeight - minHeight); 
+            //float bSin = ((swapSpeedzonesData * cosX * (Mathf.Cos(cosX * cosIndexTime))) / 2) * (maxHeight - minHeight); 
+            //float bSin = swapSpeedzonesData * cosX * Mathf.Sin(cosX * cosIndexTime) * 1/2 * (maxHeight - minHeight);
+            //float minSpeedXYZ = Mathf.Sqrt(Mathf.Abs(minSpeed * minSpeed - bSin * bSin));
+            //float maxSpeedXYZ = Mathf.Sqrt(Mathf.Abs(maxSpeed * maxSpeed - bSin * bSin));
+            //speed = Mathf.Sqrt(Mathf.Abs(speedXYZ * speedXYZ - bSin * bSin));
+            //speed = 5f;
+            //float omega = (8f * Mathf.PI / trackLength) * 15f; //(maxSpeed + minSpeed) * (0.5f);
+            //speedXYZ = 15f; //(maxSpeed - minSpeed) * (Mathf.Cos(omega * cosIndexTime) + 1f) * (0.5f) + minSpeed;
+            //heightDer = (maxHeight - minHeight) * (0.5f) * omega * (Mathf.Sin(omega * cosIndexTime));
+            //heightDer = (rollerCoasterHeight - ((maxHeight - minHeight) * (-Mathf.Cos(omega * cosIndexTime) + 1f) * (0.5f) + minHeight)) / Time.deltaTime;
+
+            float max_x = f_polar(0).x;
+            float max_y = -float.MaxValue;
+            for (float t = 0; t <= 2 * Mathf.PI; t += 0.01f)
+            {
+                Vector2 v = f_polar(t);
+                if (v.y > max_y)
+                {
+                    max_y = v.y;
+                }
+            }
+
+            // delta distance by delta time
+            heightDer = Mathf.Abs((followMeHeight - ((maxHeight - minHeight) * (-Mathf.Cos(followMeObject.transform.position.z * Mathf.PI / max_y) + 1) / 2 + minHeight))) / Time.deltaTime;
+
+            // x as input for height
+            // rollerCoasterHeight = (maxHeight - minHeight) * (-Mathf.Cos(transform.position.x * 2 * Mathf.PI / max_x) + 1) / 2 + minHeight;
+
+            // z as input for height           
+            followMeHeight = (maxHeight - minHeight) * (-Mathf.Cos(followMeObject.transform.position.z * Mathf.PI / max_y) + 1) / 2 + minHeight;
+
+            //rollerCoasterHeight = swapSpeedzonesData * ( - Mathf.Cos( ((8f * Mathf.PI * (maxSpeed + minSpeed)) / (trackLength * 2f)) * cosIndexTime ) + 1) * (maxHeight - minHeight) * (0.5f) + minHeight;
+
+            followMeSpeed =  Mathf.Sqrt(Mathf.Abs(speedXYZ * speedXYZ - heightDer * heightDer));
+            //speed = swapSpeedzonesData * (maxSpeed - minSpeed) * (Mathf.Cos(transform.position.x * 2 * Mathf.PI / max_x) + 1) / 2 + minSpeed;
+            //speed = (maxSpeed - minSpeed) * (Mathf.Cos(omega * cosIndexTime) + 1f) * (0.5f) + minSpeed;
+            //speed = Mathf.Sqrt(Mathf.Abs(speedXYZ * speedXYZ - heightDer * heightDer)) * (Mathf.Cos(omega * cosIndexTime) + 1f) * (0.5f);
+            //speed = 15f;
+        }
+
+        //speed = ((Mathf.Sin(Time.realtimeSinceStartup *((2 * Mathf.PI) / 19.5f)) + 1)/2)*7 ;// * (maxSpeed- minSpeed) + minSpeed;
+        //float cosX = (doubleSpeedzones ? 2 : 1) * cosIndexTime * trackLengthFactor * randomFactor;
+        //Debug.Log("tracklengthfactor " + trackLengthFactor);
+        //speed = ((swapSpeedzonesData * Mathf.Cos(cosX) + 1)/2) * (maxSpeed- minSpeed) + minSpeed;
+
+
+        float cosInverse = Mathf.Acos(((2 * (speed - minSpeed) / (maxSpeed - minSpeed)) / swapSpeedzonesData) - 1);
+
+        if (isBinned)
+        {
+            for (int i = 0; i < 2 * binCount; i++)
+            {
+                float startRange = i * (Mathf.PI / binCount);
+                float endRange = (i + 1) * (Mathf.PI / binCount);
+                if (startRange < cosInverse && cosInverse < endRange)
+                {
+                    followMeSpeed =  ((swapSpeedzonesData * Mathf.Cos(startRange) + 1) / 2) * (maxSpeed - minSpeed) + minSpeed;
+                    break;
+                }
+            }
+        }
+
+        // Debug.Log("CosIndexTime " + cosIndexTime + " speed " + speed);
+
+    }
+
     public Vector2 getNextPosition(float speed)
     {
         int counter = 0;
@@ -451,7 +639,7 @@ public class LinearEquation : MonoBehaviour
         int lastUnder = idxOfLastUnder(currentTheta, thetaValues);
         startBorder = lastUnder;
         values[0] = thetaValues[lastUnder];
-        values[2] = getUpperBorder(thetaValues, v3tov2(transform.position), speed, lastUnder);
+        values[2] = getUpperBorder(thetaValues, v3tov2(transform.position), speed, lastUnder, currentTheta);
         values[1] = avg(values[0], values[2]);
         if (showDebugs)
         {
@@ -510,13 +698,81 @@ public class LinearEquation : MonoBehaviour
         return f_polar(values[closer]);
     }
 
-    public float getUpperBorder(float[] values, Vector2 currentPos, float speed, int lastUnderidx)
+    public Vector2 getNextPositionFollowMe(float speed)
+    {
+        int counter = 0;
+        //find fitting start interval
+
+        float[] values = new float[3];
+        float[] dist = new float[3];
+        int lastUnder = idxOfLastUnder(followMeTheta, thetaValues);
+        startBorder = lastUnder;
+        values[0] = thetaValues[lastUnder];
+        values[2] = getUpperBorder(thetaValues, v3tov2(followMeObject.transform.position), speed, lastUnder, followMeTheta);
+        values[1] = avg(values[0], values[2]);
+        if (showDebugs)
+        {
+            Debug.Log("New Position get calculated\t" + currentTheta + " \t-------------------------------------------------------------------------------------------------------------------------");
+            Debug.Log("Start Thetas [" + values[0] * 1000 + "\t|" + values[1] * 1000 + "\t|" + values[2] * 1000 + "]");
+        }
+
+        //binary search - dividing interval into 2 parts recursively
+        while (true)
+        {
+            if (showDebugs)
+                Debug.Log("Try #" + counter);
+            values[1] = (avg(values[0], values[2])); //calc middle theta
+
+            //calc distances for each interval step
+            for (int i = 0; i < dist.Length; i++)
+            {
+                dist[i] = distanceTo(values[i], v3tov2(followMeObject.transform.position)); //distances to current pos
+                if (isBiggerTheta(followMeTheta, values[i]))
+                    dist[i] *= -1;
+
+                dist[i] = -(speed - dist[i]); //distance to wanted speed
+            }
+            //sucess & fail criteria
+            counter++;
+            if (counter > 200 || dist[1] == dist[2] || dist[1] == dist[0] || Abs(dist[1]) <= intervalThreshold || Abs(dist[2]) <= intervalThreshold)
+            {
+                break;
+            }
+
+            // new values for next iteration
+            //(all n) (2n 1p) (1n 2p) (all p)
+            if (dist[1] > 0)
+            {//(1n 2p) (all p)
+                if (dist[0] > 0)
+                    throw new System.Exception("ERROR: all positives. Start Must be lower");
+                values[2] = values[1];
+            }
+            else
+            {//(all n) (2n 1p)
+                if (dist[2] < 0)
+                    throw new System.Exception("ERROR: all negatives. Start must be higher");
+                values[0] = values[1];
+            }
+            values[1] = avg(values[0], values[2]);
+            if (showDebugs)
+            {
+                Debug.Log("New Thetas [" + values[0] * 1000 + "\t|" + values[1] * 1000 + "\t|" + values[2] * 1000 + "]");
+                Debug.Log("thesh: " + intervalThreshold * 1000 + " [" + dist[0] * 1000 + "\t|" + dist[1] * 1000 + "\t|" + dist[2] * 1000 + "\t]");
+            }
+        }
+
+        //found theta that leads to position within epsilon <= interval threshold
+        int closer = Abs(dist[1]) < Abs(dist[2]) ? 1 : 2;
+        followMeTheta = values[closer];
+        return f_polar(values[closer]);
+    }
+    public float getUpperBorder(float[] values, Vector2 currentPos, float speed, int lastUnderidx, float theta)
     {
 
         for (int i = 0; i < values.Length; i++)
         {
             int index = (i + lastUnderidx) % values.Length;
-            if (isBiggerTheta(currentTheta, values[index]))
+            if (isBiggerTheta(theta, values[index]))
                 continue;
             if (distanceTo(values[index], currentPos) <= speed)
                 continue;
@@ -553,6 +809,13 @@ public class LinearEquation : MonoBehaviour
         Vector3 lookDir = transform.position - v2tov3(f_polar(currentTheta - 0.001f));
         transform.forward = lookDir;
        // transform.LookAt(transform.position + lookDir);
+    }
+
+    void doRotationFollowMe()
+    {
+        Vector3 lookDir = followMeObject.transform.position - v2tov3(f_polar(followMeTheta - 0.001f));
+        followMeObject.transform.forward = lookDir;
+        // transform.LookAt(transform.position + lookDir);
     }
 
     static bool isBiggerTheta(float a, float b)

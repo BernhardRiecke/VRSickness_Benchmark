@@ -1021,7 +1021,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &136244885
 RectTransform:
   m_ObjectHideFlags: 0
@@ -11619,10 +11619,10 @@ MonoBehaviour:
   condition: 
   locoMotionInterface: passive
   translationMode: 0
-  rotationMode: 0
-  vignetteOn: 1
+  rotationMode: 1
+  vignetteOn: 0
   desiredFOV: 60
-  AutoFOV: 1
+  AutoFOV: 0
   MaxFOV: 10
   DynamicBlur: 0
   VirtualNose: 0
@@ -11650,6 +11650,7 @@ MonoBehaviour:
   questionnaire: {fileID: 4076772040307537898}
   linearEquation: {fileID: 6685540997500203290}
   pause: {fileID: 830015672}
+  hmdSelect: 0
   PPV: {fileID: 2003075638}
 --- !u!4 &830015671
 Transform:
@@ -19711,6 +19712,7 @@ MonoBehaviour:
   snow: {fileID: 1813037804846970390}
   setResolutionFullHD: 0
   wireFrameModeActive: 0
+  triggerAxis: 0
 --- !u!4 &4125965642513754
 Transform:
   m_ObjectHideFlags: 0
@@ -20236,7 +20238,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_ExecuteInEditor: 1
-  m_Bindings: []
+  m_Bindings:
+  - {fileID: 1813037804552112955}
   m_VisualEffect: {fileID: 1813037804552112958}
 --- !u!1 &1813037804552112954
 GameObject:
@@ -43564,6 +43567,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   set_manually: 0
+  active_locomotion: 0
+  activeSensitivity: 0.1
   currentTheta: 0
   minSpeed: 0.1
   maxSpeed: 1.865635

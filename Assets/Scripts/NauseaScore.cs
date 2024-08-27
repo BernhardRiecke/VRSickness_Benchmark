@@ -1129,11 +1129,6 @@ public enum ControlMode
 
 
 
-
-
-
-
-
     string controlModeString(ControlMode c)
     {
         switch (c)

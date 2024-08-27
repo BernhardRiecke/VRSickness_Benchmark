@@ -15,6 +15,8 @@ public class controls : MonoBehaviour
     public bool setResolutionFullHD;
     public bool wireFrameModeActive;
 
+    public float triggerAxis;
+
     // Update is called once per frame
     private void Start()
     {
@@ -61,6 +63,7 @@ public class controls : MonoBehaviour
         if (SteamVR_Actions.default_GrabGrip.GetState(SteamVR_Input_Sources.Any) || Input.GetKey(KeyCode.Space))
         {
             Debug.Log("grip or space");
+            
             score.start();  
         }
         // Reset the starttimer for accurate logging
@@ -78,6 +81,9 @@ public class controls : MonoBehaviour
         }
         if (manualStart)
             gameStarted = true;
+
+        triggerAxis = SteamVR_Actions.default_Squeeze.GetAxis(SteamVR_Input_Sources.Any);
+
     }
     void changeVisualFlow()
     {
